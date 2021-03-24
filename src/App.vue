@@ -1,26 +1,13 @@
 <template>
   <div id="app">
-    <Navbar v-if="isLogin === true" />
     <router-view />
   </div>
 </template>
 
 <script>
-import Navbar from '@/components/navbar.vue'
-import { mapState } from 'vuex'
 
 export default {
   name: 'sgApp',
-  data () {
-    return {
-    }
-  },
-  components: {
-    Navbar
-  },
-  computed: {
-    ...mapState(['isLogin'])
-  },
   created () {
     if (localStorage.getItem('access_token')) {
       this.$store.dispatch('access', true)

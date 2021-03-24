@@ -3,7 +3,8 @@ import Vuex from 'vuex'
 import axios from '../api/axios.js'
 import router from '../router/index.js'
 
-const baseURL = 'https://silver-and-gold-admin.herokuapp.com/'
+// const baseURL = 'https://silver-and-gold-admin.herokuapp.com/'
+const baseURL = 'http://localhost:3000/' // for local dev only
 
 Vue.use(Vuex)
 
@@ -11,10 +12,15 @@ export default new Vuex.Store({
   state: {
     products: [],
     banners: [],
+    carts: [],
     categories: [],
     sorted: [],
+    profile: {},
     isLogin: false,
-    readyId: 0
+    readyId: 0,
+    wRouter: true,
+    hRouter: 'cart',
+    carts: []
   },
   mutations: {
     theId (state, payload) {
@@ -29,22 +35,43 @@ export default new Vuex.Store({
     showAllProduct (state, payload) {
       state.products = payload
     },
-    showAllBanner (state, payload) {
+    showAllBanner(state, payload) {
       state.banners = payload
     },
-    LOGIN (state, payload) {
-      state.isLogin = payload
+    showAllCart (state, payload) {
+      state.carts = payload
     },
-    LOGOUT (state, payload) {
-      state.isLogin = payload
+    showProfile(state, payload) {
+      state.profile = payload
     },
     ACCESS (state, payload) {
       state.isLogin = payload
+    },
+    wRouter(state, payload) {
+      state.wRouter = payload
+    },
+    hRouter(state, payload) {
+      state.wRouter = payload
     }
   },
   actions: {
     access (context, payload) {
       context.commit('ACCESS', payload)
+    },
+    register(context, payload) {
+      const { email, name, password } = payload
+      axios({
+        method: 'POST',
+        url: baseURL + 'register',
+        data: { email, name, password },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          context.commit('wRouter', true)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
     },
     login (context, payload) {
       const { email, password } = payload
@@ -55,8 +82,9 @@ export default new Vuex.Store({
       })
         .then((response) => {
           localStorage.setItem('access_token', response.data.access_token)
-          context.commit('LOGIN', true)
-          router.push('/home')
+          context.commit('ACCESS', true)
+          context.dispatch('getProfile')
+          router.push('/')
         })
         .catch((err) => {
           console.log(err)
@@ -64,8 +92,38 @@ export default new Vuex.Store({
     },
     logout (context, payload) {
       localStorage.removeItem('access_token')
-      context.commit('LOGOUT', false)
-      router.push('/login')
+      context.commit('ACCESS', false)
+      context.state.profile = {}
+      router.push('/welcome')
+    },
+    deleteProfile (context, payload) {
+      axios({
+        method: 'DELETE',
+        url: baseURL + 'profile',
+        headers: { access_token: localStorage.access_token }
+      })
+        .then(({ data }) => {
+          localStorage.removeItem('access_token')
+          context.commit('ACCESS', false)
+          context.state.profile = {}
+          router.push('/welcome')
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    getProfile(context, payload) {
+      axios({
+        method: 'GET',
+        url: baseURL + `profile`,
+        headers: { access_token: localStorage.access_token }
+      })
+        .then(({ data }) => {
+          context.commit('showProfile', data.theUser)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
     },
     getAllProduct (context, payload) {
       axios({
@@ -80,15 +138,27 @@ export default new Vuex.Store({
           console.log(err)
         })
     },
-    getAllBanner (context, payload) {
+    getAllBanner(context, payload) {
       axios({
         method: 'GET',
         url: baseURL + 'banners',
         headers: { access_token: localStorage.access_token }
       })
         .then(({ data }) => {
-          console.log(data, 'ini dari get all')
           context.commit('showAllBanner', data.banner)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    getAllCart (context, payload) {
+      axios({
+        method: 'GET',
+        url: baseURL + 'carts',
+        headers: { access_token: localStorage.access_token }
+      })
+        .then(({ data }) => {
+          context.commit('showAllCart', data.carts)
         })
         .catch((err) => {
           console.log(err)
@@ -103,8 +173,7 @@ export default new Vuex.Store({
         headers: { access_token: localStorage.access_token }
       })
         .then((response) => {
-          console.log(response)
-          router.push('/home')
+          router.push('/')
         })
         .catch((err) => {
           console.log(err)
@@ -120,10 +189,24 @@ export default new Vuex.Store({
       })
         .then((response) => {
           console.log(response)
-          router.push('/banners')
         })
         .catch((err) => {
           console.log(err)
+        })
+    },
+    addCart(context, payload) {
+      const { ProductId, quantity } = payload
+      axios({
+        method: 'POST',
+        url: baseURL + 'carts',
+        data: { ProductId, quantity:+quantity },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          console.log(response,'then <<<<<<<<<')
+        })
+        .catch((err) => {
+          console.log(err,'disini <<<<<<<')
         })
     },
     editProduct (context, payload) {
@@ -137,7 +220,6 @@ export default new Vuex.Store({
       })
         .then((response) => {
           console.log(response)
-          router.push('/products')
         })
         .catch((err) => {
           console.log(err)
@@ -153,6 +235,22 @@ export default new Vuex.Store({
       })
         .then((response) => {
           console.log(response)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    editCart (context, payload) {
+      const { id, quantity } = payload
+      axios({
+        method: 'PATCH',
+        url: baseURL + `carts/${id}`,
+        data: { quantity },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          console.log(response)
+          context.dispatch('getAllCart')
         })
         .catch((err) => {
           console.log(err)
@@ -182,7 +280,6 @@ export default new Vuex.Store({
       })
         .then((response) => {
           console.log(response)
-          router.push('/products')
         })
         .catch((err) => {
           console.log(err)
@@ -198,6 +295,21 @@ export default new Vuex.Store({
         .then((response) => {
           console.log(response)
           router.push('/banners')
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    deleteCart (context, payload) {
+      const id = payload
+      axios({
+        method: 'DELETE',
+        url: baseURL + `carts/${id}`,
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          console.log(response)
+          context.dispatch('getAllCart')
         })
         .catch((err) => {
           console.log(err)
