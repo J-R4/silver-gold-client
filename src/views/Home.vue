@@ -9,7 +9,7 @@
         <Banner />
       </div>
       <div class="columns">
-        <div class="column">
+        <div class="column is-one-thirds">
           <div>
             <Profile />
           </div>
@@ -49,7 +49,7 @@ export default {
     this.$store.dispatch('getProfile')
     this.$store.dispatch('getAllProduct')
     this.$store.dispatch('getAllCart')
-    // this.$store.dispatch('getAllWish')
+    this.$store.dispatch('getAllWish')
     // this.$store.dispatch('getAllTrans')
   }
 }

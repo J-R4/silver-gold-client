@@ -17,12 +17,12 @@
       </div>
       <footer class="card-footer">
         <a
-          @click="hRouter(wish)"
+          @click="hRouter(`wish`)"
           class="card-footer-item"
           style="color:black;"
         ><i class="far fa-heart"></i></a>
         <a
-          @click="hRouter(cart)"
+          @click="hRouter(`cart`)"
           class="card-footer-item"
           style="color:black;"
         ><i class="fab fa-opencart"></i></a>
@@ -46,10 +46,27 @@ export default {
   },
   methods: {
     hRouter(route){ 
-      this.$commit('hRouter',route)
+      this.$store.commit('hRouter',route)
     },
     deleteAccount(){ // add swal for delete account
-      this.$store.dispatch('deleteProfile')
+      Swal.fire({
+        title: 'Are you sure to delete the acount?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.$store.dispatch('deleteProfile')
+          Swal.fire(
+            'Deleted!',
+            'Your account has been deleted.',
+            'success'
+          )
+        }
+      })
     }
   },
   computed: {

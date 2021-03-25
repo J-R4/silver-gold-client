@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from '../api/axios.js'
 import router from '../router/index.js'
-
+import { ToastProgrammatic as Toast } from 'buefy'
 // const baseURL = 'https://silver-and-gold-admin.herokuapp.com/'
 const baseURL = 'http://localhost:3000/' // for local dev only
 
@@ -19,8 +19,9 @@ export default new Vuex.Store({
     isLogin: false,
     readyId: 0,
     wRouter: true,
-    hRouter: 'cart',
-    carts: []
+    hRouter: 'wish',
+    carts: [],
+    wishlists: []
   },
   mutations: {
     theId (state, payload) {
@@ -38,8 +39,11 @@ export default new Vuex.Store({
     showAllBanner(state, payload) {
       state.banners = payload
     },
-    showAllCart (state, payload) {
+    showAllCart(state, payload) {
       state.carts = payload
+    },
+    showAllWish(state, payload) {
+      state.wishlists = payload
     },
     showProfile(state, payload) {
       state.profile = payload
@@ -51,7 +55,7 @@ export default new Vuex.Store({
       state.wRouter = payload
     },
     hRouter(state, payload) {
-      state.wRouter = payload
+      state.hRouter = payload
     }
   },
   actions: {
@@ -67,6 +71,10 @@ export default new Vuex.Store({
         headers: { access_token: localStorage.access_token }
       })
         .then((response) => {
+          Toast.open({duration: 2000,
+            message: `You account has been created successfully!`,
+            position: 'is-top',
+            type: 'is-warning'})
           context.commit('wRouter', true)
         })
         .catch((err) => {
@@ -84,9 +92,17 @@ export default new Vuex.Store({
           localStorage.setItem('access_token', response.data.access_token)
           context.commit('ACCESS', true)
           context.dispatch('getProfile')
+          Toast.open({duration: 2000,
+            message: `You has been logged in successfully!`,
+            position: 'is-top',
+            type: 'is-warning'})
           router.push('/')
         })
         .catch((err) => {
+          Toast.open({duration: 2000,
+            message: err.message ? err.message : `Your email/password is wrong!`,
+            position: 'is-top',
+            type: 'is-black'})
           console.log(err)
         })
     },
@@ -94,6 +110,10 @@ export default new Vuex.Store({
       localStorage.removeItem('access_token')
       context.commit('ACCESS', false)
       context.state.profile = {}
+      Toast.open({duration: 2000,
+            message: `You has been logout successfully, see you soon!`,
+            position: 'is-top',
+            type: 'is-warning'})
       router.push('/welcome')
     },
     deleteProfile (context, payload) {
@@ -164,36 +184,6 @@ export default new Vuex.Store({
           console.log(err)
         })
     },
-    addProduct (context, payload) {
-      const { name, price, stock, category } = payload
-      axios({
-        method: 'POST',
-        url: baseURL + 'products',
-        data: { name, image_url: payload.imageURL, price, stock, category },
-        headers: { access_token: localStorage.access_token }
-      })
-        .then((response) => {
-          router.push('/')
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
-    addBanner (context, payload) {
-      const { title, status } = payload
-      axios({
-        method: 'POST',
-        url: baseURL + 'banners',
-        data: { title, image_url: payload.imageURL, status },
-        headers: { access_token: localStorage.access_token }
-      })
-        .then((response) => {
-          console.log(response)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
     addCart(context, payload) {
       const { ProductId, quantity } = payload
       axios({
@@ -203,41 +193,19 @@ export default new Vuex.Store({
         headers: { access_token: localStorage.access_token }
       })
         .then((response) => {
-          console.log(response,'then <<<<<<<<<')
+          Toast.open({duration: 2000,
+            message: `You have added this ${quantity} of this item in your cart successfully!`,
+            position: 'is-top',
+            type: 'is-warning'
+          })
+          context.dispatch('getAllCart')
         })
         .catch((err) => {
+          Toast.open({duration: 2000,
+            message: `There is something wrong!`,
+            position: 'is-top',
+            type: 'is-black'})
           console.log(err,'disini <<<<<<<')
-        })
-    },
-    editProduct (context, payload) {
-      const { name, price, stock, category } = payload
-      console.log(this.state.readyId)
-      axios({
-        method: 'PUT',
-        url: baseURL + `products/${this.state.readyId}`,
-        data: { name, image_url: payload.imageURL, price, stock, category },
-        headers: { access_token: localStorage.access_token }
-      })
-        .then((response) => {
-          console.log(response)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
-    editBanner (context, payload) {
-      const { title, status } = payload
-      axios({
-        method: 'PUT',
-        url: baseURL + `banners/${this.state.readyId}`,
-        data: { title, image_url: payload.image_url, status },
-        headers: { access_token: localStorage.access_token }
-      })
-        .then((response) => {
-          console.log(response)
-        })
-        .catch((err) => {
-          console.log(err)
         })
     },
     editCart (context, payload) {
@@ -256,6 +224,71 @@ export default new Vuex.Store({
           console.log(err)
         })
     },
+    //Wishlist
+    getAllWish (context, payload) {
+      axios({
+        method: 'GET',
+        url: baseURL + 'wish',
+        headers: { access_token: localStorage.access_token }
+      })
+        .then(({ data }) => {
+          context.commit('showAllWish', data.wish)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    addWish(context, payload) {
+      const { ProductId } = payload
+      axios({
+        method: 'POST',
+        url: baseURL + 'wish',
+        data: { ProductId },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          console.log(response.data)
+          if (response.data.begone) {
+            Toast.open({duration: 2000,
+              message: `You have remove this item from your wishlist successfully!`,
+              position: 'is-top',
+              type: 'is-black'
+            })
+            context.dispatch('getAllWish')
+            context.commit('hRouter','wish')
+          } else if (response.data.wish){
+            Toast.open({duration: 2000,
+              message: `You have added this item to your wishlist successfully!`,
+              position: 'is-top',
+              type: 'is-warning'
+            })
+            context.dispatch('getAllWish')
+            context.commit('hRouter','wish')
+          }
+        })
+        .catch((err) => {
+          Toast.open({duration: 2000,
+            message: `There is something wrong!`,
+            position: 'is-top',
+            type: 'is-black'})
+          console.log(err,'disini <<<<<<<')
+        })
+    },
+    deleteWish (context, payload) {
+      const id = payload
+      axios({
+        method: 'DELETE',
+        url: baseURL + `wish/${id}`,
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          console.log(response)
+          context.dispatch('getAllWish')
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
     activateBanner (context, payload) {
       const { id, status } = payload
       axios({
@@ -266,35 +299,6 @@ export default new Vuex.Store({
       })
         .then((response) => {
           console.log(response)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
-    deleteProduct (context, payload) {
-      const id = payload
-      axios({
-        method: 'DELETE',
-        url: baseURL + `products/${id}`,
-        headers: { access_token: localStorage.access_token }
-      })
-        .then((response) => {
-          console.log(response)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    },
-    deleteBanner (context, payload) {
-      const id = payload
-      axios({
-        method: 'DELETE',
-        url: baseURL + `banners/${id}`,
-        headers: { access_token: localStorage.access_token }
-      })
-        .then((response) => {
-          console.log(response)
-          router.push('/banners')
         })
         .catch((err) => {
           console.log(err)
