@@ -4,7 +4,9 @@ import axios from '../api/axios.js'
 import router from '../router/index.js'
 import { ToastProgrammatic as Toast } from 'buefy'
 // const baseURL = 'https://silver-and-gold-admin.herokuapp.com/'
-const baseURL = 'http://localhost:3000/' // for local dev only
+// const baseURL = 'http://localhost:3000/' // for local dev only
+
+const baseURL = 'https://silver-and-gold.herokuapp.com/'
 
 Vue.use(Vuex)
 
