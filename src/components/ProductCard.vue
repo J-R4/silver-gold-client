@@ -13,32 +13,11 @@
           style="color:black;"
         ><i class="fas fa-cart-arrow-down"></i></a>
         <a
-          @click="buyForm = !buyForm"
+          @click="buyOne(Id)"
           class="card-footer-item"
           style="color:black;"
         ><i class="fas fa-money-bill-wave"></i></a>
       </footer>
-      <!-- select -->
-      <div
-        v-if="buyForm === true"
-        class=""
-        style="margin: 0px; padding: 0px;"
-      >
-        <input
-          v-model="qty"
-          type="number"
-          id="quantity"
-          name="quantity"
-          min="1"
-          :max="prod.stock"
-        >
-        <input
-          @click="buy(Id)"
-          type="button"
-          value="Buy"
-        >
-      </div>
-      <!-- select -->
       <!-- select cart -->
       <div
         v-if="cartForm === true"
@@ -76,8 +55,8 @@ export default {
     }
   },
   methods: {
-    buy(id){
-      //
+    buyOne(id){
+      this.$store.dispatch('addTrans',{ProductId: id})
     },
     addToCart(id){
       this.$store.dispatch('addCart',{ProductId: id,quantity: this.qty})

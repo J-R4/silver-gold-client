@@ -215,11 +215,12 @@ export default new Vuex.Store({
       })
         .then((response) => {
           Toast.open({duration: 2000,
-            message: `You have bought this item successfully!`,
+            message: `You bought this item successfully!`,
             position: 'is-top',
             type: 'is-warning'
           })
           context.dispatch('getAllTrans')
+          context.commit('hRouter','trans')
         })
         .catch((err) => {
           Toast.open({duration: 2000,
