@@ -8,17 +8,19 @@
       <div class="column is-centered is-vcentered is-mobile">
         <Banner />
       </div>
-      <div class="columns">
-        <div class="column is-one-thirds">
-          <div>
-            <Profile />
+      <div class="container">
+        <div class="columns">
+          <div class="column is-one-thirds">
+            <div>
+              <Profile />
+            </div>
+            <div>
+              <Info />
+            </div>
           </div>
-          <div>
-            <Info />
+          <div class="column is-two-thirds">
+            <Product />
           </div>
-        </div>
-        <div class="column is-two-thirds">
-          <Product />
         </div>
       </div>
     </div>

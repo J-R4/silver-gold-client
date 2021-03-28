@@ -23,7 +23,8 @@ export default new Vuex.Store({
     wRouter: true,
     hRouter: 'wish',
     carts: [],
-    wishlists: []
+    wishlists: [],
+    transactions: []
   },
   mutations: {
     theId (state, payload) {
@@ -46,6 +47,9 @@ export default new Vuex.Store({
     },
     showAllWish(state, payload) {
       state.wishlists = payload
+    },
+    showAllTrans(state, payload) {
+      state.transactions = payload
     },
     showProfile(state, payload) {
       state.profile = payload
@@ -160,6 +164,19 @@ export default new Vuex.Store({
           console.log(err)
         })
     },
+    getOneProduct (context, payload) {
+      axios({
+        method: 'GET',
+        url: baseURL + `products/${payload}`,
+        headers: { access_token: localStorage.access_token }
+      })
+        .then(({ data }) => {
+          context.commit('showAllProduct', data.product)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
     getAllBanner(context, payload) {
       axios({
         method: 'GET',
@@ -173,6 +190,81 @@ export default new Vuex.Store({
           console.log(err)
         })
     },
+    // Transaction
+    getAllTrans (context, payload) {
+      axios({
+        method: 'GET',
+        url: baseURL + 'trans',
+        headers: { access_token: localStorage.access_token }
+      })
+        .then(({ data }) => {
+          console.log(data,'masukthen <<<<<<<<<<')
+          context.commit('showAllTrans', data.trans)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    addTrans(context, payload) {
+      const { ProductId } = payload
+      axios({
+        method: 'POST',
+        url: baseURL + 'trans',
+        data: { ProductId },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          Toast.open({duration: 2000,
+            message: `You have bought this item successfully!`,
+            position: 'is-top',
+            type: 'is-warning'
+          })
+          context.dispatch('getAllTrans')
+        })
+        .catch((err) => {
+          Toast.open({duration: 2000,
+            message: `There is something wrong!`,
+            position: 'is-top',
+            type: 'is-black'})
+          console.log(err,'disini <<<<<<<')
+        })
+    },
+    cartToTrans(context, payload) {
+      const { ProductId } = payload
+      axios({
+        method: 'POST',
+        url: baseURL + 'trans',
+        data: { ProductId, quantity:+quantity },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          context.dispatch('getAllTrans')
+        })
+        .catch((err) => {
+          Toast.open({duration: 2000,
+            message: `There is something wrong!`,
+            position: 'is-top',
+            type: 'is-black'})
+          console.log(err,'disini <<<<<<<')
+        })
+    },
+    buyProd (context, payload) {
+      const { id, stock } = payload
+      axios({
+        method: 'PATCH',
+        url: baseURL + `products/${id}`,
+        data: { stock },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          console.log(response,'masuk edit trans<<<<<<<<')
+          context.dispatch('getAllProduct')
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    },
+    //Cart
     getAllCart (context, payload) {
       axios({
         method: 'GET',
@@ -184,6 +276,25 @@ export default new Vuex.Store({
         })
         .catch((err) => {
           console.log(err)
+        })
+    },
+    wishToCart(context, payload) {
+      const { ProductId, quantity } = payload
+      axios({
+        method: 'POST',
+        url: baseURL + 'carts',
+        data: { ProductId, quantity:+quantity },
+        headers: { access_token: localStorage.access_token }
+      })
+        .then((response) => {
+          context.dispatch('getAllCart')
+        })
+        .catch((err) => {
+          Toast.open({duration: 2000,
+            message: `There is something wrong!`,
+            position: 'is-top',
+            type: 'is-black'})
+          console.log(err,'disini <<<<<<<')
         })
     },
     addCart(context, payload) {
